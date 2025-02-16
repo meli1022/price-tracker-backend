@@ -12,7 +12,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbz87sn1NYjo1vhvgg_Mnp-xQzaf1Eq8TVQSI9hMR1Q52jOtxOfF8oNVHAUyv4GOZ2Tf/exec"
+GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzFjfh8kZNdrJWVRKLRV4SYhim_3qgod_jtcich3VmT0bcz9D5c92DBRcAaba5UKf6E/exec"
 
 def get_products_from_sheets():
     response = requests.post(GOOGLE_SHEETS_API_URL, json={"action": "get_products"})
