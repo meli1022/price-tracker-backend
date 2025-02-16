@@ -12,7 +12,19 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
+
+# Allow CORS for all routes and ensure OPTIONS requests are handled
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+
+@app.before_request
+def handle_preflight():
+    """Handles CORS preflight requests"""
+    if request.method == "OPTIONS":
+        response = jsonify({"message": "CORS preflight OK"})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        return response, 200
 
 GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzFjfh8kZNdrJWVRKLRV4SYhim_3qgod_jtcich3VmT0bcz9D5c92DBRcAaba5UKf6E/exec"
 
@@ -60,11 +72,8 @@ def send_email(price, url, email):
     server.sendmail(sender_email, email, f"Subject: {subject}\n\n{body}")
     server.quit()
 
-@app.route("/track-price", methods=["POST", "OPTIONS"])
+@app.route("/track-price", methods=["POST"])
 def track_price():
-    if request.method == "OPTIONS":
-        return jsonify({"message": "Preflight OK"}), 200  # Handle preflight request
-
     data = request.get_json()
     return jsonify({"message": "CORS test successful", "data": data})
 
