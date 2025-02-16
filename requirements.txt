@@ -3,4 +3,5 @@ selenium
 pytesseract
 pillow
 requests
+flask-cors
 
