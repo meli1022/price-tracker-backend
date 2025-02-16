@@ -75,8 +75,7 @@ def send_email(price, url, email):
 @app.route("/track-price", methods=["POST"])
 def track_price():
     data = request.get_json()
-    return jsonify({"message": "CORS test successful", "data": data})
-
+    return jsonify({"message": "API is working!", "data": data})
 
 def check_all_prices():
     products = get_products_from_sheets()
