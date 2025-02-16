@@ -72,10 +72,15 @@ def send_email(price, url, email):
     server.sendmail(sender_email, email, f"Subject: {subject}\n\n{body}")
     server.quit()
 
+@app.route("/", methods=["GET"])
+def home():
+    return "Backend is working!", 200
+
 @app.route("/track-price", methods=["POST"])
 def track_price():
     data = request.get_json()
     return jsonify({"message": "API is working!", "data": data})
+
 
 def check_all_prices():
     products = get_products_from_sheets()
