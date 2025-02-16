@@ -2,3 +2,5 @@ flask
 selenium
 pytesseract
 pillow
+requests
+smtplib
