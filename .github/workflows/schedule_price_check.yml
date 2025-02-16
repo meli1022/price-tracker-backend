@@ -1,0 +1,24 @@
+name: Daily Price Check
+
+on:
+  schedule:
+    - cron: "0 8 * * *"  # Runs daily at 8:00 AM UTC
+  workflow_dispatch:  # Allows manual execution
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Price Check Script
+        run: python app.py
