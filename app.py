@@ -1,19 +1,33 @@
-from flask import Flask, request, jsonify
+import os
 import time
+import json
+import requests
 import pytesseract
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
 import smtplib
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
+
+GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbz87sn1NYjo1vhvgg_Mnp-xQzaf1Eq8TVQSI9hMR1Q52jOtxOfF8oNVHAUyv4GOZ2Tf/exec"
+
+def get_products_from_sheets():
+    response = requests.post(GOOGLE_SHEETS_API_URL, json={"action": "get_products"})
+    return response.json()
+
+def add_product_to_sheets(url, target_price, email):
+    data = {"action": "add_product", "url": url, "targetPrice": target_price, "email": email}
+    requests.post(GOOGLE_SHEETS_API_URL, json=data)
 
 def take_screenshot(url):
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920x1080")
+    
     driver = webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=options)
     driver.get(url)
     time.sleep(5)
@@ -25,10 +39,10 @@ def take_screenshot(url):
 def extract_price(image_path):
     image = Image.open(image_path)
     extracted_text = pytesseract.image_to_string(image)
-    
+
     import re
     price_matches = re.findall(r'\$\d+(?:\.\d{1,2})?', extracted_text)
-    
+
     return price_matches[0] if price_matches else "Price not found"
 
 def send_email(price, url, email):
@@ -51,18 +65,27 @@ def track_price():
     target_price = float(data["targetPrice"])
     email = data["email"]
 
-    screenshot = take_screenshot(url)
-    detected_price = extract_price(screenshot)
-
-    if detected_price != "Price not found" and float(detected_price.replace("$", "")) <= target_price:
-        send_email(detected_price, url, email)
-        return jsonify({"message": "🔔 Price Drop Alert! Check your email.", "price": detected_price})
+    add_product_to_sheets(url, target_price, email)
     
-    return jsonify({"message": "Tracking started! We'll notify you when the price drops.", "price": detected_price})
+    return jsonify({"message": "Product added! Daily price checks will be performed."})
 
-import os
+def check_all_prices():
+    products = get_products_from_sheets()
+
+    for product in products:
+        url = product["url"]
+        target_price = float(product["targetPrice"])
+        email = product["email"]
+
+        screenshot = take_screenshot(url)
+        detected_price = extract_price(screenshot)
+
+        print(f"Checked {url} - Detected Price: {detected_price}")
+
+        if detected_price != "Price not found" and float(detected_price.replace("$", "")) <= target_price:
+            send_email(detected_price, url, email)
+            print(f"🔔 Price Drop Alert Sent to {email} for {url}")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Get port from Render, default to 5000
     app.run(host="0.0.0.0", port=port, debug=True)
-
