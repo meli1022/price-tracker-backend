@@ -12,7 +12,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzFjfh8kZNdrJWVRKLRV4SYhim_3qgod_jtcich3VmT0bcz9D5c92DBRcAaba5UKf6E/exec"
 
@@ -60,16 +60,14 @@ def send_email(price, url, email):
     server.sendmail(sender_email, email, f"Subject: {subject}\n\n{body}")
     server.quit()
 
-@app.route("/track-price", methods=["POST"])
+@app.route("/track-price", methods=["POST", "OPTIONS"])
 def track_price():
-    data = request.get_json()
-    url = data["url"]
-    target_price = float(data["targetPrice"])
-    email = data["email"]
+    if request.method == "OPTIONS":
+        return jsonify({"message": "Preflight OK"}), 200  # Handle preflight request
 
-    add_product_to_sheets(url, target_price, email)
-    
-    return jsonify({"message": "Product added! Daily price checks will be performed."})
+    data = request.get_json()
+    return jsonify({"message": "CORS test successful", "data": data})
+
 
 def check_all_prices():
     products = get_products_from_sheets()
