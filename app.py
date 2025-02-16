@@ -7,12 +7,12 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from PIL import Image
+import smtplib
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import smtplib
 
 app = Flask(__name__)
-CORS(app)  # Allow all origins
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
 
 GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzFjfh8kZNdrJWVRKLRV4SYhim_3qgod_jtcich3VmT0bcz9D5c92DBRcAaba5UKf6E/exec"
 
